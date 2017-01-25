@@ -46,6 +46,6 @@ namespace Procode.NbsExchangeRate.Tests
             Assert.IsTrue(n.Length > 1);
             Assert.AreEqual(expected.ToString("dd.MM.yyyy"),
                 s.Split('\n', '\r')[1].Split(',')[1]);
-        }
+        } 
     }
 }

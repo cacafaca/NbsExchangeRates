@@ -46,23 +46,30 @@ namespace Procode.NbsExchangeRate
             byte[] buff = new byte[1024];
             int count = 0;
             StringBuilder sb = new StringBuilder();
-            do
+            try
             {
-                count = responseStream.Read(buff, 0, buff.Length);
-                string tmpStr = null;
-                switch (response.CharacterSet)
+                do
                 {
-                    case "UTF-8":
-                        tmpStr = Encoding.UTF8.GetString(buff, 0, count);
-                        break;
-                    default:
-                        tmpStr = Encoding.Unicode.GetString(buff, 0, count);
-                        break;
-                }
-                sb.Append(tmpStr);
+                    count = responseStream.Read(buff, 0, buff.Length);
+                    string tmpStr = null;
+                    switch (response.CharacterSet)
+                    {
+                        case "UTF-8":
+                            tmpStr = Encoding.UTF8.GetString(buff, 0, count);
+                            break;
+                        default:
+                            tmpStr = Encoding.Unicode.GetString(buff, 0, count);
+                            break;
+                    }
+                    sb.Append(tmpStr);
 
+                }
+                while (count > 0);
             }
-            while (count > 0);
+            finally
+            {
+                request.Abort();
+            }
             return sb.ToString();
         }
 
@@ -70,13 +77,12 @@ namespace Procode.NbsExchangeRate
         {
             HttpWebRequest request = (HttpWebRequest)WebRequest.Create(uri);
             request.AutomaticDecompression = DecompressionMethods.GZip | DecompressionMethods.Deflate;
-            //request.UserAgent = "Mozilla/5.0 (Windows NT 10.0; WOW64; rv:50.0) Gecko/20100101 Firefox/50.0";
-            request.UserAgent = "Svaka cast Vucicu";
+            request.UserAgent = "Mozilla/5.0 (Windows NT 10.0; WOW64; rv:50.0) Gecko/20100101 Firefox/50.0";
             request.Accept = "text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8";
             request.Headers.Add("Accept-Language: sr,sr-RS;q=0.8,sr-CS;q=0.6,en-US;q=0.4,en;q=0.2");
             request.Referer = "http://nbs.rs/kursnaListaModul/naZeljeniDan.faces?lang=lat";
             request.Method = "POST";
-            request.KeepAlive = true;
+            request.KeepAlive = false;
             request.CookieContainer = new CookieContainer(1);
             request.CookieContainer.Add(new Cookie("JSESSIONID", JSessionId, string.Empty, uri.Host));
             request.Headers.Add("Upgrade-Insecure-Requests: 1");
@@ -88,29 +94,37 @@ namespace Procode.NbsExchangeRate
             inputStream.Write(inputArray, 0, inputArray.Length);
             inputStream.Close();
 
-            var response = (HttpWebResponse)request.GetResponse();
-            JSessionId = response.Headers[HttpResponseHeader.SetCookie];
-            var responseStream = response.GetResponseStream();
-            byte[] buff = new byte[1024];
-            int count = 0;
             StringBuilder sb = new StringBuilder();
-            do
+            try
             {
-                count = responseStream.Read(buff, 0, buff.Length);
-                string tmpStr = null;
-                switch (response.CharacterSet)
+                using (var response = (HttpWebResponse)request.GetResponse())
                 {
-                    case "UTF-8":
-                        tmpStr = Encoding.UTF8.GetString(buff, 0, count);
-                        break;
-                    default:
-                        tmpStr = Encoding.Unicode.GetString(buff, 0, count);
-                        break;
+                    JSessionId = response.Headers[HttpResponseHeader.SetCookie];
+                    var responseStream = response.GetResponseStream();
+                    byte[] buff = new byte[1024];
+                    int count = 0;
+                    do
+                    {
+                        count = responseStream.Read(buff, 0, buff.Length);
+                        string tmpStr = null;
+                        switch (response.CharacterSet)
+                        {
+                            case "UTF-8":
+                                tmpStr = Encoding.UTF8.GetString(buff, 0, count);
+                                break;
+                            default:
+                                tmpStr = Encoding.Unicode.GetString(buff, 0, count);
+                                break;
+                        }
+                        sb.Append(tmpStr);
+                    }
+                    while (count > 0);
                 }
-                sb.Append(tmpStr);
-
             }
-            while (count > 0);
+            finally
+            {
+                request.Abort();
+            }
             return sb.ToString();
         }
 
@@ -121,7 +135,7 @@ namespace Procode.NbsExchangeRate
 
             string exchangeRateList = null;
             string input = string.Format("index=index&index:brKursneListe=&index:year={0}&index:inputCalendar1={1}&index:vrsta={2}&index:prikaz={3}&index:buttonShow=Prika%C5%BEi&javax.faces.ViewState={4}",
-                date.Year, date.ToString("dd.MM.yyyy."), (int)rateType, 
+                date.Year, date.ToString("dd.MM.yyyy."), (int)rateType,
                 (int)returnDataType, FacesViewState);
             exchangeRateList = ReadPageWithPostMethod(new Uri("http://nbs.rs/kursnaListaModul/naZeljeniDan.faces"), input);
 
@@ -145,9 +159,9 @@ namespace Procode.NbsExchangeRate
         public bool SessionInitialized()
         {
             return !string.IsNullOrEmpty(JSessionId) && !string.IsNullOrEmpty(FacesViewState);
-        }   
-        
-        public ExchangeRate(string host, RateType rateType, ReturnDataType returnDataType )
+        }
+
+        public ExchangeRate(string host, RateType rateType, ReturnDataType returnDataType)
         {
             Host = host;
             RateType = rateType;
@@ -159,7 +173,7 @@ namespace Procode.NbsExchangeRate
         /// </summary>
         /// <param name="host">Host of NBS</param>
         public ExchangeRate(string host)
-            : this (host, DefaultRateType, DefaultReturnDataType)
+            : this(host, DefaultRateType, DefaultReturnDataType)
         {
         }
 

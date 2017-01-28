@@ -8,7 +8,8 @@ namespace Procode.NbsExchangeRate
         [DllExport("GetTodayExchangeRate", CallingConvention = System.Runtime.InteropServices.CallingConvention.StdCall)]
         public static string GetTodayExchangeRate()
         {
-            return new ExchangeRate().GetExchangeRate();
+            var er = new ExchangeRate();
+            return er.GetExchangeRate();
         }
 
         [DllExport("GetExchangeRate", CallingConvention = System.Runtime.InteropServices.CallingConvention.StdCall)]
@@ -18,7 +19,8 @@ namespace Procode.NbsExchangeRate
             DateTime convertedDate;
             if (DateTime.TryParseExact(date, "dd.MM.yyyy", fp, System.Globalization.DateTimeStyles.AssumeLocal, out convertedDate))
             {
-                return new ExchangeRate().GetExchangeRate(convertedDate);
+                var er = new ExchangeRate();
+                return er.GetExchangeRate(convertedDate);
             }
             else
             {

@@ -38,10 +38,18 @@ namespace Procode.NbsExchangeRate.Tests
             Assert.IsTrue(n.Length > 1);
             DateTime expected1 = DateTime.MinValue;
             DateTime nbsOfficialRateChangeTime = new DateTime(DateTime.Now.Year, DateTime.Now.Month, DateTime.Now.Day, 8, 0, 0);
-            if (DateTime.Now >= nbsOfficialRateChangeTime)
-                expected1 = DateTime.Now;
+            if (nbsOfficialRateChangeTime.DayOfWeek == DayOfWeek.Saturday)
+            {
+                nbsOfficialRateChangeTime = nbsOfficialRateChangeTime.AddDays(-1);
+            }
+            if (nbsOfficialRateChangeTime.DayOfWeek == DayOfWeek.Sunday)
+            {
+                nbsOfficialRateChangeTime = nbsOfficialRateChangeTime.AddDays(-2);
+            }
+            if (DateTime.Now.TimeOfDay >= nbsOfficialRateChangeTime.TimeOfDay)
+                expected1 = nbsOfficialRateChangeTime;
             else
-                expected1 = DateTime.Now.Subtract(new TimeSpan(1, 0, 0, 0)); // In case that I run test early in the morning, or at night.
+                expected1 = nbsOfficialRateChangeTime.Subtract(new TimeSpan(1, 0, 0, 0)); // In case that I run test early in the morning, or at night.
             Assert.AreEqual(expected1.ToString("dd.MM.yyyy"),
                 s1.Split('\n', '\r')[1].Split(',')[1]);
 

@@ -15,6 +15,11 @@ namespace Procode.NbsExchangeRate
         [DllExport("GetExchangeRate", CallingConvention = System.Runtime.InteropServices.CallingConvention.StdCall)]
         public static string GetExchangeRate(string date)
         {
+            if (date.EndsWith("."))
+            {
+                date = date.Remove(date.Length - 1, 1);
+            }
+
             IFormatProvider fp = new MyFormat();
             DateTime convertedDate;
             if (DateTime.TryParseExact(date, "dd.MM.yyyy", fp, System.Globalization.DateTimeStyles.AssumeLocal, out convertedDate))

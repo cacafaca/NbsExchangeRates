@@ -53,8 +53,6 @@ namespace Procode.NbsExchangeRate.Tests
             Assert.AreEqual(expected1.ToString("dd.MM.yyyy"),
                 s1.Split('\n', '\r')[1].Split(',')[1]);
 
-            System.Threading.Thread.Sleep(3000);
-
             // 2.
             string expected2 = "30.12.2016";
             var s2 = ExchangeRateExport.GetExchangeRate(expected2);
@@ -66,6 +64,12 @@ namespace Procode.NbsExchangeRate.Tests
             Assert.IsTrue(n2.Length > 1);
             Assert.AreEqual(expected2, s2.Split('\n', '\r')[1].Split(',')[1]);
 
+        }
+
+        [TestMethod()]
+        public void Get_Rate_For_Not_Well_Formated_Date()
+        {
+            var s = ExchangeRateExport.GetExchangeRate("27.1.2017.");
         }
     }
 }
